@@ -1,0 +1,26 @@
+{
+  "name": "guardrails-mcp-server",
+  "version": "1.0.0",
+  "description": "AI Agent Guardrails MCP Server - Security layer for Claude Code and AI agents",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test tests/",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "guardrails",
+    "ai-safety",
+    "security",
+    "validation",
+    "filtering"
+  ],
+  "author": "Purple Squirrel Media",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
