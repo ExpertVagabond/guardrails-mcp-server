@@ -1,9 +1,13 @@
 {
   "name": "guardrails-mcp-server",
-  "version": "1.0.0",
+  "mcpName": "io.github.ExpertVagabond/guardrails",
+  "version": "1.0.1",
   "description": "AI Agent Guardrails MCP Server - Security layer for Claude Code and AI agents",
   "main": "index.js",
   "type": "module",
+  "bin": {
+    "guardrails-mcp-server": "index.js"
+  },
   "scripts": {
     "start": "node index.js",
     "test": "node --test tests/",
@@ -20,7 +24,15 @@
   ],
   "author": "Purple Squirrel Media",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ExpertVagabond/guardrails-mcp-server.git"
+  },
+  "homepage": "https://github.com/ExpertVagabond/guardrails-mcp-server#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }
