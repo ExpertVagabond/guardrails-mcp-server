@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>guardrails-mcp-server — Guardrails MCP Server</title>
+  <meta name="description" content="AI Agent security layer — input validation, output filtering, audit logging">
+  <meta property="og:title" content="guardrails-mcp-server">
+  <meta property="og:description" content="AI Agent security layer — input validation, output filtering, audit logging">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <header class="hero">
+    <h1>guardrails-mcp-server</h1>
+    <p class="tagline">Guardrails MCP Server</p>
+    <p class="sub">AI Agent security layer — input validation, output filtering, audit logging</p>
+    <div class="badges">
+      <a href="https://www.npmjs.com/package/guardrails-mcp-server"><img src="https://img.shields.io/npm/v/guardrails-mcp-server?color=ef4444&label=npm&style=flat-square" alt="npm"></a>
+      <a href="https://github.com/ExpertVagabond/guardrails-mcp-server"><img src="https://img.shields.io/github/stars/ExpertVagabond/guardrails-mcp-server?color=ef4444&style=flat-square" alt="GitHub stars"></a>
+      <a href="https://github.com/ExpertVagabond/guardrails-mcp-server/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-ef4444?style=flat-square" alt="MIT License"></a>
+    </div>
+  </header>
+  <main>
+    <section class="install" id="install">
+      <h2>Quick Start</h2>
+      <div class="code-block">
+        <div class="code-label">Claude Desktop / Claude Code config</div>
+        <pre><code>{
+  "mcpServers": {
+    "guardrails-mcp-server": {
+      "command": "npx",
+      "args": ["guardrails-mcp-server@latest"]
+    }
+  }
+}</code></pre>
+      </div>
+      <p class="alt-runtime">Also works with <code>bunx</code> — replace <code>"npx"</code> with <code>"bunx"</code> in the config above</p>
+    </section>
+  </main>
+  <footer>
+    <div class="footer-links">
+      <a href="https://github.com/ExpertVagabond/guardrails-mcp-server">GitHub</a>
+      <a href="https://www.npmjs.com/package/guardrails-mcp-server">npm</a>
+      <a href="https://psm-mcp-servers.pages.dev">All Servers</a>
+    </div>
+    <p>Built by <a href="https://github.com/ExpertVagabond">Purple Squirrel Media</a></p>
+  </footer>
+</body>
+</html>
