@@ -4,7 +4,11 @@ version = "0.1.0"
 edition = "2024"
 description = "AI agent guardrails MCP server -- input validation, output filtering, policy enforcement, audit logging"
 license = "MIT"
-authors = ["Purple Squirrel Media LLC"]
+authors = ["Matthew Karsten <MatthewKarstenConnects@gmail.com>"]
+repository = "https://github.com/ExpertVagabond/guardrails-mcp-server"
+homepage = "https://github.com/ExpertVagabond/guardrails-mcp-server"
+keywords = ["mcp", "guardrails", "ai-safety", "agent", "validation"]
+categories = ["development-tools"]
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
