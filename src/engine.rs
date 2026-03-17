@@ -76,26 +76,36 @@ impl GuardrailsEngine {
         let request_id = format!("gr_{}", uuid::Uuid::new_v4());
 
         // Rate limiting
-        if self.config.enable_rate_limiting {
-            if let Some(retry_after) = self.check_rate_limit(user_id) {
-                self.audit.log("RATE_LIMIT_EXCEEDED", &format!("retry_after={retry_after}s"), user_id);
-                return InputResult {
-                    allowed: false,
-                    request_id,
-                    reason: Some(format!("Rate limit exceeded, retry after {retry_after}s")),
-                    code: Some("RATE_LIMIT".into()),
-                    validation: None,
-                    policy: None,
-                    processing_ms: start.elapsed().as_millis(),
-                };
-            }
+        if self.config.enable_rate_limiting
+            && let Some(retry_after) = self.check_rate_limit(user_id)
+        {
+            self.audit.log(
+                "RATE_LIMIT_EXCEEDED",
+                &format!("retry_after={retry_after}s"),
+                user_id,
+            );
+            return InputResult {
+                allowed: false,
+                request_id,
+                reason: Some(format!("Rate limit exceeded, retry after {retry_after}s")),
+                code: Some("RATE_LIMIT".into()),
+                validation: None,
+                policy: None,
+                processing_ms: start.elapsed().as_millis(),
+            };
         }
 
         // Input validation
         let validation = if self.config.enable_input_validation {
-            let result = self.validator.validate(text, self.config.max_tokens_per_request);
+            let result = self
+                .validator
+                .validate(text, self.config.max_tokens_per_request);
             if !result.valid {
-                self.audit.log("INPUT_BLOCKED", &format!("{} violations", result.violations.len()), user_id);
+                self.audit.log(
+                    "INPUT_BLOCKED",
+                    &format!("{} violations", result.violations.len()),
+                    user_id,
+                );
                 let val = serde_json::to_value(&result).ok();
                 return InputResult {
                     allowed: false,
@@ -116,7 +126,11 @@ impl GuardrailsEngine {
         let policy = if self.config.enable_policy_enforcement {
             let result = self.policy_engine.evaluate(text, None);
             if !result.allowed {
-                self.audit.log("POLICY_VIOLATION", &format!("{} violations", result.violations.len()), user_id);
+                self.audit.log(
+                    "POLICY_VIOLATION",
+                    &format!("{} violations", result.violations.len()),
+                    user_id,
+                );
                 let pol = serde_json::to_value(&result).ok();
                 return InputResult {
                     allowed: false,
@@ -151,7 +165,11 @@ impl GuardrailsEngine {
             return serde_json::json!({ "modified": false, "text": text });
         }
         let result = self.filter.filter(text);
-        self.audit.log("OUTPUT_FILTERED", &format!("{} redactions", result.redactions.len()), "system");
+        self.audit.log(
+            "OUTPUT_FILTERED",
+            &format!("{} redactions", result.redactions.len()),
+            "system",
+        );
         serde_json::to_value(&result).unwrap_or_default()
     }
 
@@ -174,7 +192,13 @@ impl GuardrailsEngine {
         }
     }
 
-    pub fn add_policy(&mut self, name: &str, pattern: &str, action: &str, desc: &str) -> Result<(), String> {
+    pub fn add_policy(
+        &mut self,
+        name: &str,
+        pattern: &str,
+        action: &str,
+        desc: &str,
+    ) -> Result<(), String> {
         self.policy_engine.add(name, pattern, action, desc)
     }
 

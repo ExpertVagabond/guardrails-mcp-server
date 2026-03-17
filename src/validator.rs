@@ -63,7 +63,11 @@ impl InputValidator {
         if text.len() > max_tokens * 4 {
             violations.push(Violation {
                 category: "LENGTH".into(),
-                description: format!("Input exceeds max length ({} > {})", text.len(), max_tokens * 4),
+                description: format!(
+                    "Input exceeds max length ({} > {})",
+                    text.len(),
+                    max_tokens * 4
+                ),
                 severity: "high".into(),
             });
         }
@@ -101,7 +105,11 @@ impl InputValidator {
         let valid = violations.is_empty();
         let sanitized = self.sanitize(text);
 
-        ValidationResult { valid, sanitized, violations }
+        ValidationResult {
+            valid,
+            sanitized,
+            violations,
+        }
     }
 
     fn sanitize(&self, text: &str) -> String {

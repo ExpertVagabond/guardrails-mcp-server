@@ -30,7 +30,10 @@ impl AuditLogger {
 
     pub fn log(&mut self, event_type: &str, details: &str, user_id: &str) {
         self.total_requests += 1;
-        if event_type.contains("BLOCKED") || event_type.contains("VIOLATION") || event_type.contains("RATE_LIMIT") {
+        if event_type.contains("BLOCKED")
+            || event_type.contains("VIOLATION")
+            || event_type.contains("RATE_LIMIT")
+        {
             self.blocked_requests += 1;
         }
 
@@ -52,7 +55,7 @@ impl AuditLogger {
         self.entries
             .iter()
             .rev()
-            .filter(|e| event_type.map_or(true, |t| e.event_type == t))
+            .filter(|e| event_type.is_none_or(|t| e.event_type == t))
             .take(limit)
             .collect()
     }

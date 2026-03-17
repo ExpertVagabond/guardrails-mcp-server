@@ -1,6 +1,6 @@
 use crate::engine::GuardrailsEngine;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::io::{self, BufRead, Write};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -87,7 +87,11 @@ async fn handle_request(
         }),
 
         "tools/call" => {
-            let name = req.params.get("name").and_then(|v| v.as_str()).unwrap_or("");
+            let name = req
+                .params
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
             let args = req.params.get("arguments").cloned().unwrap_or(json!({}));
             let result = call_tool(name, args, engine).await;
             Some(JsonRpcResponse {
@@ -219,7 +223,10 @@ async fn call_tool(name: &str, args: Value, engine: &Arc<Mutex<GuardrailsEngine>
     match name {
         "validate_input" => {
             let text = args.get("text").and_then(|v| v.as_str()).unwrap_or("");
-            let user_id = args.get("user_id").and_then(|v| v.as_str()).unwrap_or("anonymous");
+            let user_id = args
+                .get("user_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or("anonymous");
             let result = eng.process_input(text, user_id);
             json!({ "content": [{ "type": "text", "text": serde_json::to_string_pretty(&result).unwrap() }] })
         }
@@ -232,7 +239,8 @@ async fn call_tool(name: &str, args: Value, engine: &Arc<Mutex<GuardrailsEngine>
 
         "check_policy" => {
             let text = args.get("text").and_then(|v| v.as_str()).unwrap_or("");
-            let policies: Option<Vec<String>> = args.get("policy_names")
+            let policies: Option<Vec<String>> = args
+                .get("policy_names")
                 .and_then(|v| serde_json::from_value(v.clone()).ok());
             let result = eng.check_policy(text, policies.as_deref());
             json!({ "content": [{ "type": "text", "text": serde_json::to_string_pretty(&result).unwrap() }] })
@@ -257,13 +265,22 @@ async fn call_tool(name: &str, args: Value, engine: &Arc<Mutex<GuardrailsEngine>
             if let Some(v) = args.get("max_tokens_per_request").and_then(|v| v.as_u64()) {
                 eng.config.max_tokens_per_request = v as usize;
             }
-            if let Some(v) = args.get("enable_input_validation").and_then(|v| v.as_bool()) {
+            if let Some(v) = args
+                .get("enable_input_validation")
+                .and_then(|v| v.as_bool())
+            {
                 eng.config.enable_input_validation = v;
             }
-            if let Some(v) = args.get("enable_output_filtering").and_then(|v| v.as_bool()) {
+            if let Some(v) = args
+                .get("enable_output_filtering")
+                .and_then(|v| v.as_bool())
+            {
                 eng.config.enable_output_filtering = v;
             }
-            if let Some(v) = args.get("enable_policy_enforcement").and_then(|v| v.as_bool()) {
+            if let Some(v) = args
+                .get("enable_policy_enforcement")
+                .and_then(|v| v.as_bool())
+            {
                 eng.config.enable_policy_enforcement = v;
             }
             if let Some(v) = args.get("enable_rate_limiting").and_then(|v| v.as_bool()) {
@@ -275,11 +292,21 @@ async fn call_tool(name: &str, args: Value, engine: &Arc<Mutex<GuardrailsEngine>
         "add_policy" => {
             let name = args.get("name").and_then(|v| v.as_str()).unwrap_or("");
             let pattern = args.get("pattern").and_then(|v| v.as_str()).unwrap_or("");
-            let action = args.get("action").and_then(|v| v.as_str()).unwrap_or("block");
-            let desc = args.get("description").and_then(|v| v.as_str()).unwrap_or("");
+            let action = args
+                .get("action")
+                .and_then(|v| v.as_str())
+                .unwrap_or("block");
+            let desc = args
+                .get("description")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
             match eng.add_policy(name, pattern, action, desc) {
-                Ok(()) => json!({ "content": [{ "type": "text", "text": format!("Policy '{name}' added") }] }),
-                Err(e) => json!({ "content": [{ "type": "text", "text": format!("Error: {e}") }], "isError": true }),
+                Ok(()) => {
+                    json!({ "content": [{ "type": "text", "text": format!("Policy '{name}' added") }] })
+                }
+                Err(e) => {
+                    json!({ "content": [{ "type": "text", "text": format!("Error: {e}") }], "isError": true })
+                }
             }
         }
 

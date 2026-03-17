@@ -39,18 +39,45 @@ pub struct PolicyEngine {
 
 impl PolicyEngine {
     pub fn new() -> Self {
-        let mut engine = Self { policies: Vec::new() };
+        let mut engine = Self {
+            policies: Vec::new(),
+        };
         engine.add_defaults();
         engine
     }
 
     fn add_defaults(&mut self) {
         let defaults: Vec<(&str, &str, &str, &str)> = vec![
-            ("no_secrets_in_output", r"(?i)(password|passwd|secret)\s*[=:]\s*\S+", "block", "Block password/secret exposure"),
-            ("no_sql_injection", r"(?i)(union\s+select|;\s*drop\s+table|'\s*or\s+'1'\s*=\s*'1)", "block", "Block SQL injection patterns"),
-            ("no_path_traversal", r"[.][.]/[.][.]/", "block", "Block path traversal attempts"),
-            ("no_xxe", r"(?i)<[!]ENTITY|<[!]DOCTYPE.*\[", "block", "Block XXE injection"),
-            ("no_command_injection", r"(?i);\s*(cat|ls|whoami|id|uname)\b", "warn", "Warn on command injection"),
+            (
+                "no_secrets_in_output",
+                r"(?i)(password|passwd|secret)\s*[=:]\s*\S+",
+                "block",
+                "Block password/secret exposure",
+            ),
+            (
+                "no_sql_injection",
+                r"(?i)(union\s+select|;\s*drop\s+table|'\s*or\s+'1'\s*=\s*'1)",
+                "block",
+                "Block SQL injection patterns",
+            ),
+            (
+                "no_path_traversal",
+                r"[.][.]/[.][.]/",
+                "block",
+                "Block path traversal attempts",
+            ),
+            (
+                "no_xxe",
+                r"(?i)<[!]ENTITY|<[!]DOCTYPE.*\[",
+                "block",
+                "Block XXE injection",
+            ),
+            (
+                "no_command_injection",
+                r"(?i);\s*(cat|ls|whoami|id|uname)\b",
+                "warn",
+                "Warn on command injection",
+            ),
         ];
 
         for (name, pattern, action, desc) in defaults {
@@ -58,13 +85,24 @@ impl PolicyEngine {
         }
     }
 
-    pub fn add(&mut self, name: &str, pattern: &str, action: &str, description: &str) -> Result<(), String> {
+    pub fn add(
+        &mut self,
+        name: &str,
+        pattern: &str,
+        action: &str,
+        description: &str,
+    ) -> Result<(), String> {
         let regex = Regex::new(pattern).map_err(|e| format!("invalid regex: {}", e))?;
         let action = match action {
             "block" => PolicyAction::Block,
             "warn" => PolicyAction::Warn,
             "redact" => PolicyAction::Redact,
-            _ => return Err(format!("invalid action: {} (use block/warn/redact)", action)),
+            _ => {
+                return Err(format!(
+                    "invalid action: {} (use block/warn/redact)",
+                    action
+                ));
+            }
         };
 
         self.policies.retain(|p| p.name != name);
@@ -92,10 +130,10 @@ impl PolicyEngine {
         let mut blocked = false;
 
         for policy in &self.policies {
-            if let Some(names) = filter_names {
-                if !names.iter().any(|n| n == &policy.name) {
-                    continue;
-                }
+            if let Some(names) = filter_names
+                && !names.iter().any(|n| n == &policy.name)
+            {
+                continue;
             }
 
             if policy.pattern.is_match(text) {

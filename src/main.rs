@@ -1,9 +1,9 @@
-mod engine;
-mod validator;
-mod filter;
-mod policy;
 mod audit;
+mod engine;
+mod filter;
 mod mcp;
+mod policy;
+mod validator;
 
 use tracing_subscriber::EnvFilter;
 
