@@ -1,55 +1,31 @@
 use crate::engine::GuardrailsEngine;
-use serde::{Deserialize, Serialize};
+use psm_mcp_transport::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
+use psm_mcp_transport::transport::StdioTransport;
 use serde_json::{Value, json};
-use std::io::{self, BufRead, Write};
+use std::io;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-
-#[derive(Deserialize)]
-struct JsonRpcRequest {
-    jsonrpc: String,
-    id: Option<Value>,
-    method: String,
-    #[serde(default)]
-    params: Value,
-}
-
-#[derive(Serialize)]
-struct JsonRpcResponse {
-    jsonrpc: String,
-    id: Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    result: Option<Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<Value>,
-}
 
 pub async fn run_stdio() -> Result<(), Box<dyn std::error::Error>> {
     let engine = Arc::new(Mutex::new(GuardrailsEngine::new(Default::default())));
     let stdin = io::stdin();
     let stdout = io::stdout();
+    let mut reader = stdin.lock();
+    let mut writer = stdout.lock();
 
-    for line in stdin.lock().lines() {
-        let line = line?;
-        if line.trim().is_empty() {
-            continue;
-        }
-
-        let req: JsonRpcRequest = match serde_json::from_str(&line) {
-            Ok(r) => r,
+    loop {
+        match StdioTransport::read_request(&mut reader) {
+            Ok(Some(req)) => {
+                let response = handle_request(&req, &engine).await;
+                if let Some(resp) = response {
+                    StdioTransport::write_response(&mut writer, &resp)?;
+                }
+            }
+            Ok(None) => break, // EOF
             Err(e) => {
                 tracing::warn!("invalid JSON-RPC: {e}");
                 continue;
             }
-        };
-
-        let response = handle_request(&req, &engine).await;
-
-        if let Some(resp) = response {
-            let mut out = stdout.lock();
-            serde_json::to_writer(&mut out, &resp)?;
-            out.write_all(b"\n")?;
-            out.flush()?;
         }
     }
 
@@ -60,31 +36,27 @@ async fn handle_request(
     req: &JsonRpcRequest,
     engine: &Arc<Mutex<GuardrailsEngine>>,
 ) -> Option<JsonRpcResponse> {
-    let id = req.id.clone().unwrap_or(Value::Null);
+    let id = req.id_or_null();
 
     match req.method.as_str() {
-        "initialize" => Some(JsonRpcResponse {
-            jsonrpc: "2.0".into(),
+        "initialize" => Some(JsonRpcResponse::success(
             id,
-            result: Some(json!({
+            json!({
                 "protocolVersion": "2024-11-05",
                 "capabilities": { "tools": {} },
                 "serverInfo": {
                     "name": "guardrails-mcp-server",
                     "version": env!("CARGO_PKG_VERSION")
                 }
-            })),
-            error: None,
-        }),
+            }),
+        )),
 
         "notifications/initialized" => None,
 
-        "tools/list" => Some(JsonRpcResponse {
-            jsonrpc: "2.0".into(),
+        "tools/list" => Some(JsonRpcResponse::success(
             id,
-            result: Some(json!({ "tools": tool_definitions() })),
-            error: None,
-        }),
+            json!({ "tools": tool_definitions() }),
+        )),
 
         "tools/call" => {
             let name = req
@@ -94,23 +66,10 @@ async fn handle_request(
                 .unwrap_or("");
             let args = req.params.get("arguments").cloned().unwrap_or(json!({}));
             let result = call_tool(name, args, engine).await;
-            Some(JsonRpcResponse {
-                jsonrpc: "2.0".into(),
-                id,
-                result: Some(result),
-                error: None,
-            })
+            Some(JsonRpcResponse::success(id, result))
         }
 
-        _ => Some(JsonRpcResponse {
-            jsonrpc: "2.0".into(),
-            id,
-            result: None,
-            error: Some(json!({
-                "code": -32601,
-                "message": format!("method not found: {}", req.method)
-            })),
-        }),
+        _ => Some(JsonRpcResponse::method_not_found(id, &req.method)),
     }
 }
 

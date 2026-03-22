@@ -161,6 +161,7 @@ impl PolicyEngine {
         }
     }
 
+    #[allow(dead_code)]
     pub fn list(&self) -> Vec<&Policy> {
         self.policies.iter().collect()
     }
